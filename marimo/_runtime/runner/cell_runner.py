@@ -46,6 +46,8 @@ class RunResult:
     exception: Optional[BaseException]
     # Accumulated output: via imperative mo.output.append()
     accumulated_output: Any = None
+    # Code to add
+    code_to_add: Optional[str] = None
 
     def success(self) -> bool:
         """Whether the cell expected successfully"""
@@ -320,6 +322,16 @@ class Runner:
             run_result = RunResult(output=e.output, exception=e)
             # don't print a traceback, since quitting is the intended
             # behavior (like sys.exit())
+        except NameError as e:
+            # If its a NameError of "mo", then catch the error
+            # and add the new cell to re-run
+            if e.args[0] == "name 'mo' is not defined":
+                self.cancel(cell_id)
+                run_result = RunResult(
+                    output=None, exception=e, code_to_add="import marimo as mo"
+                )
+            else:
+                raise e
         except BaseException as e:
             # Catch-all: some libraries have bugs and raise BaseExceptions,
             # which shouldn't crash the marimo kernel

@@ -326,6 +326,12 @@ export type OperationMessage =
       };
     }
   | {
+      op: "add-new-cell";
+      data: {
+        code: string;
+      };
+    }
+  | {
       // permanent notification
       op: "banner";
       data: {

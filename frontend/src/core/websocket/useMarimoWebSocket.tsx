@@ -32,6 +32,8 @@ import {
 } from "../kernel/handlers";
 import { queryParamHandlers } from "../kernel/queryParamHandlers";
 import { JsonString } from "@/utils/json/base64";
+import { CellId } from "../cells/ids";
+import { sendRun } from "../network/requests";
 
 /**
  * WebSocket that connects to the Marimo kernel and handles incoming messages.
@@ -46,7 +48,7 @@ export function useMarimoWebSocket(opts: {
   const { autoInstantiate, sessionId, setCells } = opts;
   const { showBoundary } = useErrorBoundary();
 
-  const { handleCellMessage } = useCellActions();
+  const { handleCellMessage, createNewCell } = useCellActions();
   const setAppConfig = useSetAppConfig();
   const { setVariables, setMetadata } = useVariablesActions();
   const { setLayoutData } = useLayoutActions();
@@ -150,6 +152,20 @@ export function useMarimoWebSocket(opts: {
         queryParamHandlers.clear();
         return;
 
+      case "add-new-cell": {
+        createNewCell({
+          cellId: "__end__",
+          before: false,
+          code: msg.data.code,
+        });
+        const cellId = CellId.create();
+        if (autoInstantiate) {
+          void sendRun([cellId], [msg.data.code]).catch((error) => {
+            Logger.error(error);
+          });
+        }
+        return;
+      }
       default:
         logNever(msg);
     }

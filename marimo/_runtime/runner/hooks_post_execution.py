@@ -1,4 +1,6 @@
 # Copyright 2024 Marimo. All rights reserved.
+from __future__ import annotations
+
 from marimo import _loggers
 from marimo._ast.cell import CellImpl
 from marimo._messaging.cell_output import CellChannel
@@ -6,7 +8,12 @@ from marimo._messaging.errors import (
     MarimoExceptionRaisedError,
     MarimoInterruptionError,
 )
-from marimo._messaging.ops import CellOp, VariableValue, VariableValues
+from marimo._messaging.ops import (
+    AddNewCell,
+    CellOp,
+    VariableValue,
+    VariableValues,
+)
 from marimo._messaging.tracebacks import write_traceback
 from marimo._output import formatting
 from marimo._plugins.ui._core.ui_element import UIElement
@@ -45,6 +52,17 @@ def _broadcast_variables(
     ]
     if values:
         VariableValues(variables=values).broadcast()
+
+
+def _broadcast_code_to_add(
+    cell: CellImpl,
+    runner: cell_runner.Runner,
+    run_result: cell_runner.RunResult,
+) -> None:
+    del cell
+    del runner
+    if run_result.code_to_add:
+        AddNewCell(code=run_result.code_to_add).broadcast()
 
 
 def _store_reference_to_output(
@@ -160,6 +178,7 @@ def _reset_matplotlib_context(
 POST_EXECUTION_HOOKS = [
     _set_status_idle,
     _store_reference_to_output,
+    _broadcast_code_to_add,
     _broadcast_variables,
     _broadcast_outputs,
     _reset_matplotlib_context,

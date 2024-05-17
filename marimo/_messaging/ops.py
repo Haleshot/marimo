@@ -452,6 +452,12 @@ class QueryParamsClear(Op):
     name: ClassVar[str] = "query-params-clear"
 
 
+@dataclass
+class AddNewCell(Op):
+    name: ClassVar[str] = "add-new-cell"
+    code: str
+
+
 MessageOperation = Union[
     # Cell operations
     CellOp,
@@ -470,6 +476,7 @@ MessageOperation = Union[
     Banner,
     MissingPackageAlert,
     InstallingPackageAlert,
+    AddNewCell,
     # Variables
     Variables,
     VariableValues,
